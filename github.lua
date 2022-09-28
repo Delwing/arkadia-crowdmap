@@ -2,7 +2,7 @@ Github = Github or {}
 
 local base64 = require("arkadia-crowdmap.base64")
 
-local client_id = "c0c161a424cffa3c1c78"
+local client_id = "Iv1.69a5bcc964a15d53"
 local code_url = "https://github.com/login/device/code"
 local token_url = "https://github.com/login/oauth/access_token"
 local store_key = "github"
