@@ -1,4 +1,4 @@
-Github = Github or {}
+acrowdmap.github = acrowdmap.github or {}
 
 local base64 = require("arkadia-crowdmap.base64")
 
@@ -6,18 +6,21 @@ local client_id = "Iv1.69a5bcc964a15d53"
 local code_url = "https://github.com/login/device/code"
 local token_url = "https://github.com/login/oauth/access_token"
 local store_key = "github"
-local data = {client_id = client_id, scope = "repo"}
+local data = { client_id = client_id, scope = "repo" }
 local json_headers = {
     ["Accept"] = "application/json",
     ["Content-Type"] = "application/json"
 }
-local repository = "https://api.github.com/repos/Delwing/arkadia-crowdmap"
+local repository = "Delwing/arkadia-mapa"
+local basicApi = "https://api.github.com/"
+local repositoryApi = "https://api.github.com/repos/" .. repository
+local lockApi = "https://arkadia-crowdmap-locks-byqu.vercel.app"
 
-function Github:init()
+function acrowdmap.github:init()
     
 end
 
-function Github:authorize(routine)
+function acrowdmap.github:authorize(routine)
     local state = scripts.state_store:get(store_key)
     if state and state.token then
         self.token = state.token
@@ -27,7 +30,7 @@ function Github:authorize(routine)
     end
 end
 
-function Github:on_code_receive(response, routine)
+function acrowdmap.github:on_code_receive(response, routine)
     tempTimer(1, function() openUrl(response.verification_uri) end)
 
     setClipboardText(response.user_code)
@@ -43,7 +46,7 @@ function Github:on_code_receive(response, routine)
     self.timer2 = tempTimer(response.expires_in + 1, function() if self.timer then killTimer(self.timer) end end)
 end
 
-function Github:poll_for_code(device_code, routine)
+function acrowdmap.github:poll_for_code(device_code, routine)
     HttpClient:post(token_url, {
         device_code = device_code,
         client_id = client_id,
@@ -51,7 +54,7 @@ function Github:poll_for_code(device_code, routine)
     }, json_headers, function(response) self:accept_token(response.access_token, routine) end, function(er) display(er) end)
 end
 
-function Github:accept_token(token, routine)
+function acrowdmap.github:accept_token(token, routine)
     if token then
         killTimer(self.timer)
         killTimer(self.timer2)
@@ -63,62 +66,79 @@ function Github:accept_token(token, routine)
     end
 end
 
-function Github:authorized_call(callback)
+function acrowdmap.github:authorized_call(callback)
     self:authorize(callback)
 end
 
-function Github:get_headers()
+function acrowdmap.github:get_headers()
     return {
         ["Authorization"] = "Bearer " .. self.token
     }
 end
 
+function acrowdmap.github:get_json_headers()
+    return table.update(self:get_headers(), json_headers)
+end
 
-function Github:getData(location, callback, queryParams)
+function acrowdmap.github:getDataBasicApi(location, callback, errorCallback)
     local routine = coroutine.create(function()
-        HttpClient:get(string.format("%s/%s", repository, location), self:get_headers(), callback)
+        HttpClient:get(string.format("%s/%s", basicApi, location), self:get_headers(), callback, errorCallback)
     end)
     self:authorize(routine)
 end
 
-function Github:postData(location, content, callback, queryParams)
+function acrowdmap.github:getData(location, callback, errorCallback)
     local routine = coroutine.create(function()
-        HttpClient:post(string.format("%s/%s", repository, location), content, self:get_headers(), callback)
+        HttpClient:get(string.format("%s/%s", repositoryApi, location), self:get_headers(), callback, errorCallback)
     end)
     self:authorize(routine)
 end
 
-function Github:putData(location, content, callback, queryParams)
+function acrowdmap.github:postData(location, content, callback, errorCallback)
     local routine = coroutine.create(function()
-        HttpClient:put(string.format("%s/%s", repository, location), content, self:get_headers(), callback)
+        HttpClient:post(string.format("%s/%s", repositoryApi, location), content, self:get_headers(), callback, errorCallback)
     end)
     self:authorize(routine)
 end
 
-function Github:upload_changes()
-    self:create_branch("development")
+function acrowdmap.github:putData(location, content, callback, errorCallback)
+    local routine = coroutine.create(function()
+        HttpClient:put(string.format("%s/%s", repositoryApi, location), content, self:get_headers(), callback, errorCallback)
+    end)
+    self:authorize(routine)
 end
 
-function Github:create_branch(branch_name)
+function acrowdmap.github:upload_changes()
+    local branch_name = "development"
+    self:create_branch(branch_name, function(response)
+        local sha = response.object.sha
+        self:get_current_map_sha(sha, function(file_sha) self:upload_map(file_sha, branch_name) end)
+    end)
+end
+
+function acrowdmap.github:create_branch(branch_name, callback)
     scripts.installer:save_map()
     self:getData("git/refs/heads/master", function(response)
         self:postData("git/refs", {
             ["ref"] = "refs/heads/" .. branch_name,
             ["sha"] = response.object.sha
         }, function(response)
-            local sha = response.object.sha
-            self:get_current_map_sha(sha, function(file_sha) self:upload_map(file_sha, branch_name) end)
+            callback(response)
+        end, function()
+            scripts:print_url("Aktualnie istnieja oczekajace zmiany -> <cornflower_blue>https://github.com/" .. repository .. "/pulls<reset>", function()
+                openUrl("https://github.com/" .. repository .. "/pulls")
+            end, "Otworz")
         end)
     end)
 end
 
-function Github:get_current_map_sha(sha, callback)
+function acrowdmap.github:get_current_map_sha(sha, callback)
     self:getData("contents/map_master3.dat?ref=" .. sha, function(response)
         callback(response.sha)
     end)
 end
 
-function Github:upload_map(sha, branch_name)
+function acrowdmap.github:upload_map(sha, branch_name)
     local map = io.open(getMudletHomeDir() .. "/" .. "map_master3.dat", "rb")
     if map then
         scripts:print_log("Wysylam mape i tworze PR")
@@ -130,23 +150,46 @@ function Github:upload_map(sha, branch_name)
                 sha = sha
         }, function()
             self:create_pr(branch_name)
+            self:release()
         end)
         map:close()
     end
 end
 
-function Github:create_pr(branch_name)
-    self:postData("pulls", {
-        base = "master",
-        head = branch_name,
-        title = "PR - map change"
-    }, function(response)
-        if response and response.html_url then
-            openUrl(response.html_url)
-        end
+function acrowdmap.github:create_pr(branch_name)
+    openUrl(string.format("https://github.com/" .. repository .. "/compare/master...%s?quick_pull=1&title=Map%%20update", branch_name))
+end
+
+function acrowdmap.github:lock(time)
+    if not time then
+        scripts:print_log("Podaj czas locka.")
+    end
+    self:getData("git/refs/heads/development", function(response) scripts:print_url("Aktualnie istnieja oczekajace zmiany -> <cornflower_blue>https://github.com/" .. repository .. "/pulls<reset>", function()
+        openUrl("https://github.com/" .. repository .. "/pulls")
+    end, "Otworz") end, function() 
+        local routine = coroutine.create(function()
+            HttpClient:post(lockApi .. "/api/lock", { lock = time }, self:get_json_headers(), function(resp)
+                scripts:print_log(resp.message)
+                self.hasLock = resp.message
+             end, function(response, msg)
+                scripts:print_log("Nie moge zalozyc locka. " .. msg)
+            end)
+        end)
+        self:authorize(routine)
     end)
 end
 
-Github:init()
+function acrowdmap.github:release()
+    scripts:print_log("Zdejmuje locka.")
+    local routine = coroutine.create(function()
+        HttpClient:post(lockApi .. "/api/release", {}, self:get_json_headers(), function(resp) 
+            scripts:print_log(resp.message)
+            self.hasLock = false
+        end, function(response, msg)
+            scripts:print_log("Nie moge zdjac locka. " .. msg)
+        end)
+    end)
+    self:authorize(routine)
+end
 
-
+acrowdmap.github:init()

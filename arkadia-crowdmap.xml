@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE MudletPackage>
+<MudletPackage version="1.001">
+	<TriggerPackage />
+	<TimerPackage />
+	<AliasPackage>
+		<Alias isActive="yes" isFolder="no">
+			<name>mapup</name>
+			<script>alias_func_map_sync_mapup()</script>
+			<command></command>
+			<packageName></packageName>
+			<regex>^/_mapup$</regex>
+		</Alias>
+		<Alias isActive="yes" isFolder="no">
+			<name>/map_lock</name>
+			<script>acrowdmap.github:release()</script>
+			<command></command>
+			<packageName></packageName>
+			<regex>^/_map_unlock$</regex>
+		</Alias>
+		<Alias isActive="yes" isFolder="no">
+			<name>rysuj</name>
+			<script>alias_func_map_sync_rysuj()</script>
+			<command></command>
+			<packageName></packageName>
+			<regex>^/rysuj$</regex>
+		</Alias>
+		<Alias isActive="yes" isFolder="no">
+			<name>mapsync_help</name>
+			<script>alias_func_map_sync_mapsync_help()</script>
+			<command></command>
+			<packageName></packageName>
+			<regex>^/mapsync$</regex>
+		</Alias>
+	</AliasPackage>
+	<ActionPackage />
+	<ScriptPackage />
+	<KeyPackage />
+	<HelpPackage>
+		<helpURL></helpURL>
+	</HelpPackage>
+</MudletPackage>
