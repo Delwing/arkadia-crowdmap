@@ -10,6 +10,8 @@ if table.contains(scripts.plugins, "arkadia-mapsync") then
     scripts:print_log("Map Sync nie jest juz potrzebny.")
 end
 
+scripts.plugins_update_check:github_check_version("arkadia-crowdmap", "Delwing")
+
 return {
     "base64",
     "upload",
