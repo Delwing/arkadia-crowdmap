@@ -5,6 +5,13 @@
 	<TimerPackage />
 	<AliasPackage>
 		<Alias isActive="yes" isFolder="no">
+			<name>/_mapy</name>
+			<script>openUrl("https://github.com/Delwing/arkadia-mapa/pulls?q=is%3Apr+is%3Aclosed")</script>
+			<command></command>
+			<packageName></packageName>
+			<regex>^/_mapy$</regex>
+		</Alias>
+		<Alias isActive="yes" isFolder="no">
 			<name>mapup</name>
 			<script>alias_func_map_sync_mapup()</script>
 			<command></command>
@@ -12,7 +19,14 @@
 			<regex>^/_mapup$</regex>
 		</Alias>
 		<Alias isActive="yes" isFolder="no">
-			<name>/map_lock</name>
+			<name>/aktualizuj_mape</name>
+			<script>alias_func_map_sync_mapup()</script>
+			<command></command>
+			<packageName></packageName>
+			<regex>^/popraw_mape$</regex>
+		</Alias>
+		<Alias isActive="yes" isFolder="no">
+			<name>/map_unlock</name>
 			<script>acrowdmap.github:release()</script>
 			<command></command>
 			<packageName></packageName>

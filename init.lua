@@ -12,6 +12,16 @@ end
 
 scripts.plugins_update_check:github_check_version("arkadia-crowdmap", "Delwing")
 
+function alias_func_map_sync_mapsync_help()
+    cecho("\n                     <tomato>Arkadia Crowdmap     \n")
+    echo("                     --------------     \n")
+    echo("\n")
+    echo("  Pomoc, komendy i opis dzialania na tej stronie: ")
+    cechoLink("<cornflower_blue>tutaj<reset>", function() openUrl("https://github.com/Delwing/arkadia-mapa/wiki") end, "klik", true)
+    echo("\n")
+    echo("\n")
+end
+
 return {
     "base64",
     "upload",
