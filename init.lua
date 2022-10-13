@@ -1,5 +1,15 @@
 acrowdmap = acrowdmap or {}
 
+if table.contains(getPackages(),"map_sync") then
+    uninstallPackage("map_sync")
+    scripts:print_log("Map Sync nie jest juz potrzebny.")
+end
+
+if table.contains(scripts.plugins, "arkadia-mapsync") then
+    scripts.plugins_installer:uninstall("arkadia-mapsync")
+    scripts:print_log("Map Sync nie jest juz potrzebny.")
+end
+
 return {
     "base64",
     "upload",
