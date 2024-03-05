@@ -170,7 +170,7 @@ function acrowdmap.github:lock(time)
         local routine = coroutine.create(function()
             HttpClient:post(lockApi .. "/api/lock", { lock = time }, self:get_json_headers(), function(resp)
                 scripts:print_log(resp.message)
-                self.hasLock = resp.message
+                self.hasLock = resp.result
              end, function(response, msg)
                 scripts:print_log("Nie moge zalozyc locka. " .. msg)
             end)
@@ -182,7 +182,7 @@ end
 function acrowdmap.github:release()
     scripts:print_log("Zdejmuje locka.")
     local routine = coroutine.create(function()
-        HttpClient:post(lockApi .. "/api/release", {}, self:get_json_headers(), function(resp) 
+        HttpClient:post(lockApi .. "/api/release", {}, self:get_json_headers(), function(resp)
             scripts:print_log(resp.message)
             self.hasLock = false
         end, function(response, msg)
