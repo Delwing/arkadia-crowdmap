@@ -164,19 +164,15 @@ function acrowdmap.github:lock(time)
     if not time then
         scripts:print_log("Podaj czas locka.")
     end
-    self:getData("git/refs/heads/development", function(response) scripts:print_url("Aktualnie istnieja oczekajace zmiany -> <cornflower_blue>https://github.com/" .. repository .. "/pulls<reset>", function()
-        openUrl("https://github.com/" .. repository .. "/pulls")
-    end, "Otworz") end, function() 
-        local routine = coroutine.create(function()
-            HttpClient:post(lockApi .. "/api/lock", { lock = time }, self:get_json_headers(), function(resp)
-                scripts:print_log(resp.message)
-                self.hasLock = resp.result
-             end, function(response, msg)
-                scripts:print_log("Nie moge zalozyc locka. " .. msg)
-            end)
+    local routine = coroutine.create(function()
+        HttpClient:post(lockApi .. "/api/lock", { lock = time }, self:get_json_headers(), function(resp)
+            scripts:print_log(resp.message)
+            self.hasLock = resp.result
+            end, function(response, msg)
+            scripts:print_log("Nie moge zalozyc locka. " .. msg)
         end)
-        self:authorize(routine)
     end)
+    self:authorize(routine)
 end
 
 function acrowdmap.github:release()
